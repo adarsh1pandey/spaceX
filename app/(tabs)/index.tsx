@@ -12,6 +12,8 @@ import type { Launch } from '../../types/spacex';
 
 export default function LaunchesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  
   const {
     data,
     fetchNextPage,
@@ -22,7 +24,7 @@ export default function LaunchesScreen() {
     error,
     refetch,
     isRefetching,
-  } = useLaunches(searchQuery);
+  } = useLaunches(debouncedQuery);
 
   // Flatten all pages into a single array
   const launches = useMemo(() => {
@@ -45,6 +47,10 @@ export default function LaunchesScreen() {
   const handleRefresh = useCallback(() => {
     refetch();
   }, [refetch]);
+
+  const handleDebouncedSearch = useCallback((query: string) => {
+    setDebouncedQuery(query);
+  }, []);
 
   const renderLaunchItem = useCallback(({ item }: { item: Launch }) => (
     <LaunchListItem launch={item} onPress={handleLaunchPress} />
@@ -87,6 +93,7 @@ export default function LaunchesScreen() {
         <SearchBar 
           value={searchQuery} 
           onChangeText={setSearchQuery}
+          onDebouncedChange={handleDebouncedSearch}
         />
         <EmptyState
           title="No matches"
@@ -101,6 +108,11 @@ export default function LaunchesScreen() {
     return (
       <ThemedView style={styles.container}>
         <Stack.Screen options={{ title: 'SpaceX Launches' }} />
+        <SearchBar 
+          value={searchQuery} 
+          onChangeText={setSearchQuery}
+          onDebouncedChange={handleDebouncedSearch}
+        />
         <EmptyState
           title="No launches"
           message="No SpaceX launches available"
@@ -116,6 +128,7 @@ export default function LaunchesScreen() {
       <SearchBar 
         value={searchQuery} 
         onChangeText={setSearchQuery}
+        onDebouncedChange={handleDebouncedSearch}
       />
       <FlatList
         data={launches}
